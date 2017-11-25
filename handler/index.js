@@ -1,5 +1,14 @@
 'use strict';
 
-module.exports = {
+
+function test() {
+  try {
+    throw new Error('xxx')
+    return 'aaa';
   
-};
+  } finally {
+    console.log('bbb');
+  }
+}
+
+console.log(test());

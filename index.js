@@ -74,6 +74,7 @@ function getApi(method, opts = {}) {
   let { id, query } = opts;
 
   switch(method) {
+
   }
 
   return '';
