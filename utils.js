@@ -13,7 +13,8 @@ const ONE_DAY = 24 * ONE_HOUR;
 
 let openingFiles = {};
 
-function grep(fname, matchStr = '', timeRange, bufSize = 4 * KB) {
+function grep(fname, matchStr = '', timeRange, bufSize = 4) {
+  bufSize = bufSize * KB;
   // 文件锁，防止重复打开正在使用中的文件
   if (openingFiles[fname] !== undefined) {
     throw new Error(`${fname} file is busy`);

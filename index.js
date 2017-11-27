@@ -4,6 +4,7 @@ const http = require('http');
 const Url = require('url');
 const querystring = require('querystring');
 const crypto = require('crypto');
+const { grep } = require('./utils');
 
 const server = http.createServer((req, res) => {
   let _end = res.end;
@@ -24,22 +25,32 @@ const server = http.createServer((req, res) => {
 
   req.on('end', async () => {
     try {
+      let argObj = null;
+
       const urlObj = Url.parse(req.url);
       let query = urlObj.query ? querystring.parse(urlObj.query) : {};
-
-      chunks = Buffer.concat(chunks).toString()
-      let body = {};
-      if (chunks) {
-        body = JSON.parse(chunks);
+      if (Object.keys(query).length) {
+        argObj = query;
+      } else {
+        chunks = Buffer.concat(chunks).toString()
+        if (chunks) {
+          argObj = JSON.parse(chunks);
+        }
       }
 
-      req.query = query;
-      req.body = body;
+      let {
+        fname,
+        matchStr,
+        timeRange,
+        bufSize
+      } = argObj;
 
-      let handler = getHandler(urlObj);
-      await handler({ req, res });
+      bufSize = parseInt(bufSize);
+      bufSize = (!bufSize || bufSize > 1024) ? 4 : bufSize;
 
-      res.end()
+      let matchChunk = grep(fname, matchStr, timeRange, bufSize);
+
+      res.end(matchChunk);
     } catch(err) {
       res.writeHead(500, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ errMsg: err.stack }));
@@ -50,35 +61,6 @@ const server = http.createServer((req, res) => {
 server.listen(2233, () => {
   console.log('server start on port 2233');
 });
-
-function getHandler({ pathname }) {
-  if (pathname[pathname.length - 1] === '/') {
-    pathname = pathname.substr(0, pathname.length - 1);
-  }
-
-  switch (pathname) {
-    default:
-      return emptyResponse;
-  }
-}
-
-function emptyResponse({ req, res }) {
-  return new Promise(resolve => {
-    res.writeHead(404, { 'Content-Type': 'text/plain' });
-    res.end('Not Found');
-    resolve();
-  });
-}
-
-function getApi(method, opts = {}) {
-  let { id, query } = opts;
-
-  switch(method) {
-
-  }
-
-  return '';
-}
 
 process.on('unhandledRejection', (reason, p) => {
   console.log('Unhandled Rejection at:', p, 'reason:', reason);
