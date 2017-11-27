@@ -4,6 +4,7 @@ const http = require('http');
 const Url = require('url');
 const querystring = require('querystring');
 const crypto = require('crypto');
+const fs = require('fs');
 const { grep } = require('./utils');
 
 const server = http.createServer((req, res) => {
@@ -63,5 +64,11 @@ server.listen(2233, () => {
 });
 
 process.on('unhandledRejection', (reason, p) => {
-  console.log('Unhandled Rejection at:', p, 'reason:', reason);
+  let log = JSON.stringify({
+    'unhandled rejection at': p,
+    'reason': reason
+  }, null, ' ');
+
+  console.log(log);
+  fs.writeFileSync('mcat.log', log, { flag: 'a' });
 });
